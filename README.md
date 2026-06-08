@@ -100,4 +100,4 @@ ollama pull phi3
 You can change the default model at any time inside `backend/ai_engine/services/chat_service.py`.
 
 ---
-*Built with ❤️ by [Your Name/GitHub]*
+
