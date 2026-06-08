@@ -14,15 +14,15 @@ The platform features a secure **Django Backend** with role-based access control
 
 ## 🖼️ Screenshots
 
-*(Drag and drop your project screenshots here!)*
+
 1. **Homepage:** <img width="1902" height="954" alt="Screenshot 2026-06-08 181910" src="https://github.com/user-attachments/assets/674c6b3e-9081-4319-b833-3e948481c65f" />
-`
+
 2. **Dashboard:** <img width="1916" height="969" alt="Screenshot 2026-06-08 182042" src="https://github.com/user-attachments/assets/425c843e-52bf-4e24-97d7-29552bea7c4e" />
-`
+
 3. **Login Page:** <img width="1897" height="946" alt="Screenshot 2026-06-08 182000" src="https://github.com/user-attachments/assets/3d2bbc16-1e07-474b-83ab-7055eb02ce6b" />
-`
+
 4. **AI Assistant Chat:** <img width="1916" height="969" alt="Screenshot 2026-06-08 182042" src="https://github.com/user-attachments/assets/e162e24f-a022-47bc-a515-1faf335961a0" />
-`
+
 
 ## 🛠️ Technology Stack
 
