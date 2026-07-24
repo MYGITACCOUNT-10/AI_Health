@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, BrainCircuit, Loader2 } from 'lucide-react';
+import { MessageSquare, X, Send, BrainCircuit, Loader2, Sparkles, Bot, User } from 'lucide-react';
 import api from '../api/axios';
 
 const HealthChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', text: "Hi! I'm HealthAI. I've reviewed your medical vault. How can I help you today?" }
+    { role: 'assistant', text: "Hi! I'm HealthAI. I've analyzed your medical vault and diagnostic history. How can I assist you today?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,6 @@ const HealthChatbot = () => {
   }, [messages, isOpen]);
 
   useEffect(() => {
-    // Fetch initial chat history
     api.get('/ai-engine/chat/')
       .then(res => {
         if (res.data && res.data.length > 0) {
@@ -48,7 +47,7 @@ const HealthChatbot = () => {
       setMessages(prev => [...prev, { role: 'assistant', text: response.data.answer }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'assistant', text: "I'm sorry, I'm having trouble connecting to my knowledge base right now." }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: "I'm sorry, I'm having trouble connecting to my clinical knowledge base right now." }]);
     } finally {
       setLoading(false);
     }
@@ -63,10 +62,10 @@ const HealthChatbot = () => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 h-16 w-16 bg-blue-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:bg-blue-700 transition-colors z-50 group"
+            className="fixed bottom-6 right-6 h-14 w-14 bg-gradient-to-br from-blue-600 via-cyan-500 to-indigo-600 rounded-2xl shadow-2xl shadow-cyan-500/30 flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all duration-300 z-50 group border border-cyan-400/30"
           >
-            <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-20"></div>
-            <MessageSquare className="h-7 w-7 group-hover:scale-110 transition-transform" />
+            <div className="absolute inset-0 bg-cyan-400/20 rounded-2xl animate-ping opacity-30 pointer-events-none"></div>
+            <BrainCircuit className="h-6 w-6 group-hover:rotate-12 transition-transform" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -74,47 +73,62 @@ const HealthChatbot = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed bottom-6 right-6 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 flex flex-col overflow-hidden h-[500px]"
+            exit={{ opacity: 0, y: 40, scale: 0.92 }}
+            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+            className="fixed bottom-6 right-6 w-80 sm:w-96 bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-800 z-50 flex flex-col overflow-hidden h-[540px]"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-4 flex justify-between items-center text-white shadow-md z-10">
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center text-white z-10">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border border-white/30">
+                <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-md shadow-cyan-500/20 border border-cyan-400/30">
                   <BrainCircuit className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold leading-tight">HealthAI</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-blue-100">
-                    <div className="h-2 w-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    Online
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-1.5">
+                    Health<span className="text-cyan-400">AI</span> Clinical
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium mt-0.5">
+                    <span className="h-2 w-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                    Gemini 2.5 Active
                   </div>
                 </div>
               </div>
               <button 
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 bg-slate-50 p-4 overflow-y-auto scrollbar-thin flex flex-col gap-4">
+            <div className="flex-1 bg-slate-950/80 p-4 overflow-y-auto flex flex-col gap-3.5">
               {messages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-2xl p-3 text-sm shadow-sm whitespace-pre-wrap ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-700 rounded-bl-none'}`}>
+                <div key={idx} className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.role === 'assistant' && (
+                    <div className="h-7 w-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 flex-shrink-0 mt-0.5">
+                      <Bot className="h-4 w-4" />
+                    </div>
+                  )}
+                  <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-relaxed shadow-md whitespace-pre-wrap ${
+                    msg.role === 'user' 
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-br-none border border-cyan-400/20' 
+                      : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-inner'
+                  }`}>
                     {msg.text}
                   </div>
                 </div>
               ))}
               {loading && (
-                <div className="flex justify-start">
-                  <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 shadow-sm">
-                    <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                <div className="flex gap-2.5 justify-start items-center">
+                  <div className="h-7 w-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                    <Bot className="h-4 w-4" />
+                  </div>
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl rounded-bl-none px-4 py-3 flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 text-cyan-400 animate-spin" />
+                    <span className="text-xs text-slate-400 font-medium">Analyzing diagnostic records...</span>
                   </div>
                 </div>
               )}
@@ -122,20 +136,20 @@ const HealthChatbot = () => {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex gap-2 items-center">
+            <form onSubmit={handleSend} className="p-3 bg-slate-900/90 border-t border-slate-800 flex gap-2 items-center">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about your health..."
-                className="flex-1 bg-slate-100 border-transparent focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl px-4 py-2 text-sm outline-none transition-all"
+                placeholder="Ask about symptoms, prescriptions..."
+                className="flex-1 bg-slate-950 border border-slate-800 focus:border-cyan-500/60 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 outline-none transition-all"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || loading}
-                className="h-10 w-10 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors shadow-sm shadow-blue-500/20"
+                className="h-9 w-9 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-xl flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-all shadow-md shadow-cyan-500/20"
               >
-                <Send className="h-4 w-4 ml-1" />
+                <Send className="h-4 w-4" />
               </button>
             </form>
           </motion.div>

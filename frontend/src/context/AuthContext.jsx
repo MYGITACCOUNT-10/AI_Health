@@ -1,82 +1,91 @@
-import { createContext, useState, useEffect, useCallback, useContext } from "react";
-import { jwtDecode } from "jwt-decode";
-import api from "../api/axios";
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../api/axios';
 
-export const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('access_token'));
   const [loading, setLoading] = useState(true);
 
-  const fetchUserDetails = useCallback(async () => {
-    try {
-      const response = await api.get('/accounts/me/');
-      setUser(response.data);
-      setRole(response.data.role);
-      return response.data;
-    } catch (error) {
-      console.error("Failed to fetch user details", error);
-      const dummyUser = { role: 'doctor', username: 'Demo' };
-      setUser(dummyUser);
-      setRole(dummyUser.role);
-      return dummyUser;
+  const fetchUser = useCallback(async () => {
+    const storedToken = localStorage.getItem('access_token');
+    if (!storedToken) {
+      setUser(null);
+      setLoading(false);
+      return;
     }
-  }, []);
-
-  const login = async (accessToken, refreshToken) => {
-    localStorage.setItem('access_token', accessToken);
-    if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
-    
     try {
-      const decoded = jwtDecode(accessToken);
-      if (decoded.role) setRole(decoded.role);
-    } catch (e) {
-      console.error("Invalid token format", e);
+      const res = await api.get('/accounts/me/');
+      setUser(res.data);
+    } catch (err) {
+      console.error('Failed to fetch current user:', err);
+      setUser(null);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    } finally {
+      setLoading(false);
     }
-    
-    return await fetchUserDetails();
-  };
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    setUser(null);
-    setRole(null);
   }, []);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        try {
-          const decoded = jwtDecode(token);
-          if (decoded.exp * 1000 < Date.now()) {
-            // Token expired, let axios interceptor handle refresh or logout
-          }
-          await fetchUserDetails();
-        } catch (error) {
-          logout();
-        }
-      }
-      setLoading(false);
+    fetchUser();
+
+    const handleLogoutEvent = () => {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     };
 
-    initAuth();
+    window.addEventListener('auth-logout', handleLogoutEvent);
+    return () => window.removeEventListener('auth-logout', handleLogoutEvent);
+  }, [fetchUser]);
 
-    const handleAuthLogout = () => logout();
-    window.addEventListener('auth-logout', handleAuthLogout);
+  const login = async (emailOrUsername, password) => {
+    const res = await api.post('/api/token/', {
+      email: emailOrUsername,
+      password,
+    });
+    const { access, refresh } = res.data;
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+    setToken(access);
 
-    return () => {
-      window.removeEventListener('auth-logout', handleAuthLogout);
-    };
-  }, [fetchUserDetails, logout]);
+    const userRes = await api.get('/accounts/me/');
+    setUser(userRes.data);
+    return userRes.data;
+  };
 
-  return (
-    <AuthContext.Provider value={{ user, role, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const registerUser = async (data) => {
+    await api.post('/accounts/register/', data);
+    return await login(data.email, data.password);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    setToken(null);
+    setUser(null);
+  };
+
+  const updateUser = (data) => {
+    setUser((prev) => (prev ? { ...prev, ...data } : data));
+  };
+
+  const value = {
+    user,
+    token,
+    role: user?.role || null,
+    loading,
+    login,
+    register: registerUser,
+    logout,
+    updateUser,
+    refreshUser: fetchUser,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
@@ -86,3 +95,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;
